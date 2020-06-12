@@ -1,0 +1,28 @@
+---
+- hosts: Dev
+  vars:
+   dockerport: 7070
+   contport: 8080
+  become: true
+  tasks:
+   - name: Update apt repo
+     apt: update_cache=yes name=docker.io state=present
+   - name: Clone Git repo
+     git:
+       repo: https://github.com/rprasadp/calculatorANSIBLE.git
+       dest: /home/Rajgcp/calculator/
+       force: yes
+   - name: Build
+     shell:
+       cmd: mvn package
+       chdir: /home/Rajgcp/calculator/
+   - name: Create Image
+     shell:
+       cmd: docker build -t cat .
+       chdir: /home/Rajgcp/calculator/
+   - name: Remove Docker Container
+     shell:
+       cmd: docker rm --force cat || echo
+   - name: Start Docker Container
+     shell:
+       cmd: docker run -d --name=cat -p {{ dockerport }}:{{ contport }} cat
